@@ -5,10 +5,15 @@ import foxder.app.demo.dto.ResponseUser;
 import foxder.app.demo.exception.DuplicatedResource;
 import foxder.app.demo.exception.UserNotFound;
 import foxder.app.demo.model.User;
+import foxder.app.demo.model.UserPrincipal;
 import foxder.app.demo.repository.UserRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,8 +22,9 @@ import java.util.List;
 @Service
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
-public class UserService {
+public class UserService implements UserDetailsService {
     UserRepository userRepository;
+    BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Transactional
     public ResponseUser postUser(RequestUser requestUser) {
@@ -28,7 +34,7 @@ public class UserService {
 
         User dbUser = new User();
         dbUser.setEmail(requestUser.getEmail());
-        dbUser.setPassword(requestUser.getPassword());
+        dbUser.setPassword(this.bCryptPasswordEncoder.encode(requestUser.getPassword()));
         dbUser.setRole(requestUser.getRole());
         dbUser = this.userRepository.save(dbUser);
 
@@ -51,4 +57,10 @@ public class UserService {
         return new ResponseUser(dbUser.getId(), dbUser.getEmail(), dbUser.getRole());
     }
 
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        User dbUser = this.userRepository.findByEmail(username).orElseThrow(() -> new UserNotFound("User not found"));
+
+        return new UserPrincipal(dbUser);
+    }
 }
