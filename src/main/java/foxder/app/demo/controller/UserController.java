@@ -33,4 +33,11 @@ public class UserController {
 
         return ResponseEntity.status(201).body(responseUser);
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ResponseUser> getAUserById(@PathVariable String id) {
+        ResponseUser responseUser = this.userService.getUserByUserId(id);
+
+        return ResponseEntity.ok(responseUser);
+    }
 }

@@ -1,4 +1,4 @@
 package foxder.app.demo.dto;
 
-public record ResponseUser(String id, String email) {
+public record ResponseUser(String id, String email, String role) {
 }

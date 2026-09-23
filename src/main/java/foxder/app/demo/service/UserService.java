@@ -3,6 +3,7 @@ package foxder.app.demo.service;
 import foxder.app.demo.dto.RequestUser;
 import foxder.app.demo.dto.ResponseUser;
 import foxder.app.demo.exception.DuplicatedResource;
+import foxder.app.demo.exception.UserNotFound;
 import foxder.app.demo.model.User;
 import foxder.app.demo.repository.UserRepository;
 import lombok.AccessLevel;
@@ -28,9 +29,10 @@ public class UserService {
         User dbUser = new User();
         dbUser.setEmail(requestUser.getEmail());
         dbUser.setPassword(requestUser.getPassword());
+        dbUser.setRole(requestUser.getRole());
         dbUser = this.userRepository.save(dbUser);
 
-        return new ResponseUser(dbUser.getId(), dbUser.getEmail());
+        return new ResponseUser(dbUser.getId(), dbUser.getEmail(), dbUser.getRole());
     }
 
     @Transactional(readOnly = true)
@@ -38,8 +40,15 @@ public class UserService {
         List<User> dbUsers = this.userRepository.findAll();
 
         return dbUsers.stream().map(user -> {
-            return new ResponseUser(user.getId(), user.getEmail());
+            return new ResponseUser(user.getId(), user.getEmail(), user.getRole());
         }).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public ResponseUser getUserByUserId(String id) {
+        User dbUser = this.userRepository.findById(id).orElseThrow(() -> new UserNotFound("User not found"));
+
+        return new ResponseUser(dbUser.getId(), dbUser.getEmail(), dbUser.getRole());
     }
 
 }

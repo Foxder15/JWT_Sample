@@ -21,4 +21,6 @@ public class User {
     String email;
     @Column(nullable = false, length = 16)
     String password;
+    @Column(nullable = false, length = 64)
+    String role;
 }
